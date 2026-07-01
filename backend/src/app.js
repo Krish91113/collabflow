@@ -4,6 +4,7 @@ import helmet from "helmet";
 import compression from "compression";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
+import authRoutes from "./modules/auth/routes/auth.routes.js";
 
 const app = express();
 
@@ -26,6 +27,9 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+
+//routes
+app.use("/api/v1/auth", authRoutes)
 // Health Check
 app.get("/health", (req, res) => {
   res.status(200).json({

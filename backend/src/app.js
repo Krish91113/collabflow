@@ -5,6 +5,8 @@ import compression from "compression";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import authRoutes from "./modules/auth/routes/auth.routes.js";
+import errorMiddleware from "./middleware/error.middleware.js";
+import notFoundMiddleware from "./middleware/notFound.middleware.js";
 
 const app = express();
 
@@ -40,8 +42,14 @@ app.get("/health", (req, res) => {
 
 // Routes
 // app.use("/api/v1/auth", authRoutes);
-
-// Global Error Handler
-// app.use(errorMiddleware);
+// app.use("*", (req, res) => {
+//   res.status(404).json({
+//     success: false,
+//     message: "Route not found",
+//   });
+// });
+// MUST BE LAST
+app.use(notFoundMiddleware);
+app.use(errorMiddleware);
 
 export default app;

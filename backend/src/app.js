@@ -7,7 +7,7 @@ import morgan from "morgan";
 import authRoutes from "./modules/auth/routes/auth.routes.js";
 import errorMiddleware from "./middleware/error.middleware.js";
 import notFoundMiddleware from "./middleware/notFound.middleware.js";
-
+import workspaceRoutes from "./modules/workspace/routes/workspace.routes.js";
 const app = express();
 
 // Security
@@ -31,13 +31,25 @@ app.use(express.urlencoded({ extended: true }));
 
 
 //routes
-app.use("/api/v1/auth", authRoutes)
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/workspaces", workspaceRoutes);
 // Health Check
 app.get("/health", (req, res) => {
   res.status(200).json({
     success: true,
     message: "CollabFlow Backend Running 🚀"
   });
+});
+app.get("/redis-test", async (req, res) => {
+
+    await redis.set("name", "Krish");
+
+    const value = await redis.get("name");
+
+    res.json({
+        value
+    });
+
 });
 
 // Routes

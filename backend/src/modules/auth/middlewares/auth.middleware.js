@@ -2,12 +2,12 @@ import User from "../models/user.models.js";
 import jwt from "jsonwebtoken";
 import ApiError from "../../../utils/ApiError.js";
 
-const authMiddleware = async (req, res, next) => {
+export const verifyJWT = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      throw new ApiError(401, "Unauthorized");
+      return next(new ApiError(401, "Unauthorized"));
     }
 
     const token = authHeader.split(" ")[1];
@@ -20,7 +20,7 @@ const authMiddleware = async (req, res, next) => {
     const user = await User.findById(decoded.id);
 
     if (!user) {
-      throw new ApiError(401, "User not found");
+      return next(new ApiError(401, "User not found"));
     }
 
     req.user = user;
@@ -30,5 +30,3 @@ const authMiddleware = async (req, res, next) => {
     next(error);
   }
 };
-
-export default authMiddleware;

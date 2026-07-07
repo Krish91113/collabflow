@@ -1,0 +1,23 @@
+// src/config/redis.js
+
+import dotenv from "dotenv";
+dotenv.config();
+
+import Redis from "ioredis";
+
+
+const redis = new Redis(process.env.REDIS_URL);
+
+redis.on("connect", () => {
+  console.log("🟢 Redis Connected");
+});
+
+redis.on("ready", () => {
+  console.log("🚀 Redis Ready");
+});
+
+redis.on("error", (err) => {
+  console.error("Redis Error:", err.message);
+});
+
+export default redis;

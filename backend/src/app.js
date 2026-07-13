@@ -4,64 +4,86 @@ import helmet from "helmet";
 import compression from "compression";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
+
+import redis from "./config/redis.js";
+
 import authRoutes from "./modules/auth/routes/auth.routes.js";
+import workspaceRoutes from "./modules/workspace/routes/workspace.routes.js";
+import workspaceMemberRoutes from "./modules/workspace-member/routes/workspaceMember.routes.js";
+
 import errorMiddleware from "./middleware/error.middleware.js";
 import notFoundMiddleware from "./middleware/notFound.middleware.js";
-import workspaceRoutes from "./modules/workspace/routes/workspace.routes.js";
+
 const app = express();
 
-// Security
+/* ---------------- Security ---------------- */
+
 app.use(helmet());
 
-// Logging
+/* ---------------- Logger ---------------- */
+
 app.use(morgan("dev"));
 
-// Compression
+/* ---------------- Compression ---------------- */
+
 app.use(compression());
 
-// CORS
+/* ---------------- CORS ---------------- */
+
 app.use(cors());
 
-// Cookie Parser
+/* ---------------- Cookies ---------------- */
+
 app.use(cookieParser());
 
-// Body Parsers
+/* ---------------- Body Parser ---------------- */
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+/* ---------------- Routes ---------------- */
 
-//routes
 app.use("/api/v1/auth", authRoutes);
+
 app.use("/api/v1/workspaces", workspaceRoutes);
-// Health Check
+
+/*
+Workspace Member APIs
+
+POST   /api/v1/workspaces/:workspaceId/members
+GET    /api/v1/workspaces/:workspaceId/members
+PATCH  /api/v1/workspaces/:workspaceId/members/:memberId
+DELETE /api/v1/workspaces/:workspaceId/members/:memberId
+*/
+
+app.use("/api/v1/workspaces", workspaceMemberRoutes);
+
+/* ---------------- Health ---------------- */
+
 app.get("/health", (req, res) => {
   res.status(200).json({
     success: true,
-    message: "CollabFlow Backend Running 🚀"
+    message: "CollabFlow Backend Running 🚀",
   });
 });
+
+/* ---------------- Redis Test ---------------- */
+
 app.get("/redis-test", async (req, res) => {
+  await redis.set("name", "Krish");
 
-    await redis.set("name", "Krish");
+  const value = await redis.get("name");
 
-    const value = await redis.get("name");
-
-    res.json({
-        value
-    });
-
+  res.json({
+    success: true,
+    value,
+  });
 });
 
-// Routes
-// app.use("/api/v1/auth", authRoutes);
-// app.use("*", (req, res) => {
-//   res.status(404).json({
-//     success: false,
-//     message: "Route not found",
-//   });
-// });
-// MUST BE LAST
+/* ---------------- Error ---------------- */
+
 app.use(notFoundMiddleware);
+
 app.use(errorMiddleware);
 
 export default app;

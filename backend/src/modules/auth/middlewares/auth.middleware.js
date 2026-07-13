@@ -2,6 +2,11 @@ import User from "../models/user.models.js";
 import jwt from "jsonwebtoken";
 import ApiError from "../../../utils/ApiError.js";
 
+import {
+  getCachedUser,
+  cacheUser,
+} from "../../../cache/user.cache.js";
+
 export const verifyJWT = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
@@ -17,11 +22,27 @@ export const verifyJWT = async (req, res, next) => {
       process.env.ACCESS_TOKEN_SECRET
     );
 
-    const user = await User.findById(decoded.id);
+    // Check Redis
+    let user = await getCachedUser(decoded.id);
+
+    if (user) {
+      console.log("🟢 AUTH CACHE HIT");
+
+      req.user = user.toObject ? user.toObject() : user;
+      return next();
+    }
+
+    // Cache Miss
+    console.log("🔴 AUTH CACHE MISS");
+
+    user = await User.findById(decoded.id);
 
     if (!user) {
       return next(new ApiError(401, "User not found"));
     }
+
+    // Store in Redis
+    await cacheUser(user);
 
     req.user = user;
 

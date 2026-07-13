@@ -5,12 +5,24 @@ import {
   generateRefreshToken,
   verifyRefreshToken,
 } from "../../../utils/jwt.js";
+import {
+  cacheUser,
+  getCachedUser,
+  deleteCachedUser,
+} from "../../../cache/user.cache.js";
+import {
+  cacheRefreshToken,
+  getRefreshToken,
+  deleteRefreshToken,
+} from "../../../cache/token.cache.js";
 
 /**
  * Generate Access & Refresh Tokens
  */
 const generateTokens = async (user) => {
+
   const accessToken = generateAccessToken(user);
+
   const refreshToken = generateRefreshToken(user);
 
   user.refreshToken = refreshToken;
@@ -19,10 +31,17 @@ const generateTokens = async (user) => {
     validateBeforeSave: false,
   });
 
+  // Cache Refresh Token
+  await cacheRefreshToken(
+    user._id,
+    refreshToken
+  );
+
   return {
     accessToken,
     refreshToken,
   };
+
 };
 
 /**
@@ -45,6 +64,7 @@ export const registerUser = async ({ name, email, password }) => {
 
   const createdUser = await User.findById(user._id);
 
+  await cacheUser(createdUser);
   return {
     user: createdUser,
     accessToken,
@@ -73,7 +93,7 @@ export const loginUser = async ({ email, password }) => {
   const { accessToken, refreshToken } = await generateTokens(user);
 
   const loggedInUser = await User.findById(user._id);
-
+  await cacheUser(loggedInUser);
   return {
     user: loggedInUser,
     accessToken,
@@ -85,11 +105,17 @@ export const loginUser = async ({ email, password }) => {
  * Logout User
  */
 export const logoutUser = async (userId) => {
+
   await User.findByIdAndUpdate(userId, {
     $unset: {
       refreshToken: 1,
     },
   });
+
+  await deleteCachedUser(userId);
+
+  await deleteRefreshToken(userId);
+
 };
 
 /**
@@ -105,8 +131,25 @@ export const refreshAccessToken = async (incomingRefreshToken) => {
       throw new ApiError(404, "User not found");
     }
 
-    if (user.refreshToken !== incomingRefreshToken) {
-      throw new ApiError(401, "Invalid refresh token");
+    const storedToken =
+      await getRefreshToken(user._id);
+
+    if (!storedToken) {
+
+      throw new ApiError(
+        401,
+        "Refresh Token Expired"
+      );
+
+    }
+
+    if (storedToken !== incomingRefreshToken) {
+
+      throw new ApiError(
+        401,
+        "Invalid Refresh Token"
+      );
+
     }
 
     const accessToken = generateAccessToken(user);
@@ -123,11 +166,32 @@ export const refreshAccessToken = async (incomingRefreshToken) => {
  * Get Current User
  */
 export const getCurrentUser = async (userId) => {
+
+  const cachedUser = await getCachedUser(userId);
+
+  if (cachedUser) {
+
+    console.log("🟢 USER CACHE HIT");
+
+    return cachedUser;
+
+  }
+
+  console.log("🔴 USER CACHE MISS");
+
   const user = await User.findById(userId);
 
   if (!user) {
-    throw new ApiError(404, "User not found");
+
+    throw new ApiError(
+      404,
+      "User not found"
+    );
+
   }
 
+  await cacheUser(user);
+
   return user;
+
 };

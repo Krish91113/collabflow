@@ -10,6 +10,8 @@ import redis from "./config/redis.js";
 import authRoutes from "./modules/auth/routes/auth.routes.js";
 import workspaceRoutes from "./modules/workspace/routes/workspace.routes.js";
 import workspaceMemberRoutes from "./modules/workspace-member/routes/workspaceMember.routes.js";
+import workspaceInvitationRoutes
+  from "./modules/workspace-invitation/routes/workspaceInvitation.routes.js";
 
 import errorMiddleware from "./middleware/error.middleware.js";
 import notFoundMiddleware from "./middleware/notFound.middleware.js";
@@ -79,6 +81,10 @@ app.get("/redis-test", async (req, res) => {
     value,
   });
 });
+app.use(
+  "/api/v1/workspaces",
+  workspaceInvitationRoutes
+);
 
 /* ---------------- Error ---------------- */
 

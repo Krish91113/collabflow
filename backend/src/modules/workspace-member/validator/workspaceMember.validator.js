@@ -18,3 +18,6 @@ export const updateMemberRoleSchema = z.object({
     "MEMBER",
   ]),
 });
+export const transferOwnershipSchema = z.object({
+  newOwnerId: z.string().min(1),
+});

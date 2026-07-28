@@ -1,9 +1,14 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { App } from '../App.jsx';
+import { AuthStatePage } from '../features/auth/pages/AuthStatePage.jsx';
+import { ForgotPasswordPage } from '../features/auth/pages/ForgotPasswordPage.jsx';
+import { LoginPage } from '../features/auth/pages/LoginPage.jsx';
+import { RegisterPage } from '../features/auth/pages/RegisterPage.jsx';
+import { ResetPasswordPage } from '../features/auth/pages/ResetPasswordPage.jsx';
+import { VerifyEmailPage } from '../features/auth/pages/VerifyEmailPage.jsx';
 import { BoardPage } from '../pages/BoardPage.jsx';
 import { ChatPage } from '../pages/ChatPage.jsx';
 import { DashboardPage } from '../pages/DashboardPage.jsx';
-import { LoginPage } from '../pages/LoginPage.jsx';
 import { MembersPage } from '../pages/MembersPage.jsx';
 import { SimplePage } from '../pages/SimplePage.jsx';
 import { TaskPage } from '../pages/TaskPage.jsx';
@@ -14,7 +19,17 @@ export const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/dashboard" replace /> },
   {
     element: <PublicRoute />,
-    children: [{ path: '/login', element: <LoginPage /> }],
+    children: [
+      { path: '/login', element: <LoginPage /> },
+      { path: '/register', element: <RegisterPage /> },
+      { path: '/forgot-password', element: <ForgotPasswordPage /> },
+      { path: '/reset-password', element: <ResetPasswordPage /> },
+      { path: '/verify-email', element: <VerifyEmailPage /> },
+      { path: '/verify-email/:state', element: <VerifyEmailPage /> },
+      { path: '/account-locked', element: <AuthStatePage /> },
+      { path: '/invalid-credentials', element: <AuthStatePage /> },
+      { path: '/session-expired', element: <AuthStatePage /> },
+    ],
   },
   {
     element: <ProtectedRoute />,

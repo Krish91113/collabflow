@@ -1,12 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  isAuthenticated: true,
-  user: {
-    name: 'Maya Chen',
-    email: 'maya@collabflow.app',
-    role: 'Workspace Admin',
-  },
+  accessToken: null,
+  isAuthenticated: false,
+  user: null,
   workspace: {
     name: 'Acme Product',
     plan: 'Scale',
@@ -20,15 +17,25 @@ const sessionSlice = createSlice({
     setSession(state, action) {
       state.isAuthenticated = true;
       state.user = action.payload.user;
-      state.workspace = action.payload.workspace;
+      state.accessToken = action.payload.accessToken;
+      state.workspace = action.payload.workspace || state.workspace;
+    },
+    setAccessToken(state, action) {
+      state.accessToken = action.payload;
+      state.isAuthenticated = Boolean(action.payload || state.user);
+    },
+    setCurrentUser(state, action) {
+      state.user = action.payload;
+      state.isAuthenticated = Boolean(action.payload);
     },
     clearSession(state) {
       state.isAuthenticated = false;
+      state.accessToken = null;
       state.user = null;
       state.workspace = null;
     },
   },
 });
 
-export const { setSession, clearSession } = sessionSlice.actions;
+export const { setSession, setAccessToken, setCurrentUser, clearSession } = sessionSlice.actions;
 export default sessionSlice.reducer;
